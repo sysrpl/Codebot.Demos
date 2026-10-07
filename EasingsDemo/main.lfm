@@ -1,0 +1,17 @@
+object EasingsForm: TEasingsForm
+  Left = 240
+  Height = 760
+  Top = 120
+  Width = 1200
+  Caption = 'Easings Demo'
+  ClientHeight = 760
+  ClientWidth = 1200
+  OnCreate = FormCreate
+  object GraphicsBox: TGraphicsBox
+    Left = 0
+    Height = 760
+    Top = 0
+    Width = 1200
+    Align = alClient
+  end
+end

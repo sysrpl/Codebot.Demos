@@ -1,0 +1,18 @@
+object MachineForm: TMachineForm
+  Left = 240
+  Height = 760
+  Top = 120
+  Width = 1280
+  Caption = 'Machine Demo'
+  ClientHeight = 760
+  ClientWidth = 1280
+  LCLVersion = '5.99.0.0'
+  OnCreate = FormCreate
+  object GraphicsBox: TGraphicsBox
+    Left = 0
+    Height = 760
+    Top = 0
+    Width = 1280
+    Align = alClient
+  end
+end

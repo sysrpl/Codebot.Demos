@@ -1,0 +1,140 @@
+object MainForm: TMainForm
+  Left = 300
+  Height = 480
+  Top = 200
+  Width = 800
+  Caption = 'FTP View'
+  ClientHeight = 480
+  ClientWidth = 800
+  Position = poScreenCenter
+  LCLVersion = '5.99.0.0'
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  object SiteEdit: TEdit
+    Left = 8
+    Height = 28
+    Top = 8
+    Width = 784
+    Align = alTop
+    BorderSpacing.Around = 8
+    TabOrder = 0
+    Text = 'test.rebex.net'
+    TextHint = 'ftp.example.com'
+    OnKeyDown = SiteEditKeyDown
+  end
+  object Progress: TIndeterminateProgress
+    Left = 8
+    Height = 32
+    Top = 448
+    Width = 784
+    BusyDelay = 20
+    Align = alBottom
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Left = 8
+    BorderSpacing.Right = 8
+    Caption = 'Ready'
+  end
+  object ImagePanel: TPanel
+    Left = 552
+    Height = 404
+    Top = 44
+    Width = 240
+    Align = alRight
+    BorderSpacing.Right = 8
+    BevelOuter = bvNone
+    ClientHeight = 404
+    ClientWidth = 240
+    TabOrder = 2
+    object ImageView: TDrawImage
+      Left = 0
+      Height = 404
+      Top = 0
+      Width = 240
+      Saturation = 1
+      Colorized = False
+      Mode = imFit
+      Opacity = 255
+      Align = alClient
+    end
+  end
+  object Splitter: TSplitter
+    Left = 547
+    Height = 404
+    Top = 44
+    Width = 5
+    Align = alRight
+    ResizeAnchor = akRight
+  end
+  object GridPanel: TPanel
+    Left = 8
+    Height = 404
+    Top = 44
+    Width = 539
+    Align = alClient
+    BorderSpacing.Left = 8
+    BevelOuter = bvNone
+    ClientHeight = 404
+    ClientWidth = 539
+    TabOrder = 1
+    object Header: THeaderBar
+      Left = 0
+      Height = 24
+      Top = 0
+      Width = 539
+      Columns = <      
+        item
+          CanSelect = False
+          Caption = 'Name'
+          MinWidth = 100
+          Tag = 0
+          Width = 280
+        end      
+        item
+          Alignment = taRightJustify
+          CanSelect = False
+          Caption = 'Size'
+          MinWidth = 50
+          Tag = 1
+        end      
+        item
+          CanSelect = False
+          Caption = 'Modified'
+          MinWidth = 80
+          Tag = 2
+          Width = 150
+        end>
+      Align = alTop
+      OnColumnResize = HeaderColumnResize
+    end
+    object FileGrid: TContentGrid
+      Left = 0
+      Height = 380
+      Top = 24
+      Width = 539
+      DefColWidth = 75
+      DefRowHeight = 26
+      ColCount = 1
+      RowCount = 5
+      OnSelection = FileGridSelection
+      OnHotTrack = FileGridHotTrack
+      OnDrawRow = FileGridDrawRow
+      OnDrawCell = FileGridDrawCell
+      Align = alClient
+      BorderStyle = bsSingle
+      Color = clWindow
+      ParentColor = False
+      TabOrder = 0
+      UseDockManager = False
+      OnDblClick = FileGridDblClick
+      OnResize = FileGridResize
+    end
+  end
+  object SelectTimer: TTimer
+    Enabled = False
+    Interval = 300
+    OnTimer = SelectTimerTimer
+    Left = 400
+    Top = 200
+  end
+end

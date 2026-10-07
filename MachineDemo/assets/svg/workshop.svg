@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" version="1.1"
+   xmlns="http://www.w3.org/2000/svg">
+  <style>
+  .frame {
+    body: static;
+    friction: 0.8;
+    stroke-width: 4;
+  }
+
+  .part {
+    body: dynamic;
+    stroke-width: 2;
+  }
+
+  .light {
+    body: dynamic;
+    density: 0.2;
+    stroke-width: 2;
+  }
+
+  .ball {
+    body: dynamic;
+    density: 0.5;
+    friction: 0.2;
+    elasticity: 0.4;
+  }</style>
+
+  <!-- The frame is the first static path, which joints act on when they
+       do not name a second body -->
+  <path id="frame" class="frame" d="M 10,-300 V 1060 H 1910 V -300" />
+
+  <!-- A row of balls rolls down a ramp -->
+  <line class="frame" x1="10" y1="230" x2="720" y2="360" />
+  <circle class="ball" cx="60" cy="213" r="18" />
+  <circle class="ball" cx="105" cy="221" r="18" />
+  <circle class="ball" cx="150" cy="230" r="18" />
+  <circle class="ball" cx="195" cy="238" r="18" />
+  <circle class="ball" cx="240" cy="246" r="18" />
+  <circle class="ball" cx="285" cy="254" r="18" />
+  <circle class="ball" cx="330" cy="263" r="18" />
+  <circle class="ball" cx="375" cy="271" r="18" />
+  <circle class="ball" cx="420" cy="279" r="18" />
+  <circle class="ball" cx="465" cy="287" r="18" />
+  <!-- Rotary spring and rotary limit: a springboard which is held level by
+       a spring at its pivot, and bends under the balls which land on it -->
+  <line id="board" class="light" x1="790" y1="480" x2="1010" y2="480" />
+  <circle joint="pivot" a="board" cx="1010" cy="480" r="5" />
+  <circle joint="rotary-spring" a="board" stiffness="200000000" damping="6000000" cx="1010" cy="480" r="5" />
+  <circle joint="limit" a="board" min="-20" max="20" cx="1010" cy="480" r="5" />
+
+  <!-- Ratchet: a turnstile which the balls can turn one way only -->
+  <path id="turnstile" class="light" d="M 750,710 H 950 M 850,610 V 810" />
+  <circle joint="pivot" a="turnstile" cx="850" cy="710" r="5" />
+  <circle joint="ratchet" a="turnstile" ratchet="30" cx="850" cy="710" r="5" />
+
+  <!-- A second ramp takes the balls to the piston -->
+  <line class="frame" x1="980" y1="900" x2="560" y2="980" />
+
+  <!-- Motor, pin, groove and rotary limit: a motor turns a flywheel, a rod
+       pinned to the flywheel pushes a piston, and the piston slides along a
+       groove of the frame without turning -->
+  <circle id="flywheel" class="part" cx="150" cy="990" r="50" />
+  <circle joint="pivot" a="flywheel" cx="150" cy="990" r="5" />
+  <circle joint="motor" a="flywheel" rate="3" force="200000000" cx="150" cy="990" r="5" />
+  <rect id="piston" class="part" x="380" y="950" width="60" height="95" />
+  <line joint="pin" a="flywheel" b="piston" x1="190" y1="990" x2="380" y2="990" />
+  <line joint="groove" a="frame" b="piston" x1="290" y1="990" x2="470" y2="990" />
+  <circle joint="limit" a="piston" min="0" max="0" cx="380" cy="990" r="5" />
+
+  <!-- Gear: a second motor turns a wheel, and a paddle geared to the wheel
+       turns the other way at half its speed -->
+  <circle id="drive" class="part" cx="1300" cy="200" r="50" />
+  <circle joint="pivot" a="drive" cx="1300" cy="200" r="5" />
+  <circle joint="motor" a="drive" rate="1.5" force="200000000" cx="1300" cy="200" r="5" />
+  <path id="paddle" class="light" d="M 1390,200 H 1610 M 1500,90 V 310" />
+  <circle joint="pivot" a="paddle" cx="1500" cy="200" r="5" />
+  <circle joint="gear" a="paddle" b="drive" ratio="-0.5" cx="1500" cy="200" r="5" />
+
+  <!-- Spring: a weight hangs from a spring where the paddle strikes it -->
+  <circle id="bob" class="part" cx="1580" cy="260" r="30" />
+  <line joint="spring" a="bob" stiffness="100000" damping="1500" x1="1580" y1="260" x2="1580" y2="40" />
+
+  <!-- Slide: a wrecking ball on a rope swings into a stack of boxes -->
+  <circle id="wrecker" class="part" cx="1480" cy="520" r="40" />
+  <line joint="slide" a="wrecker" x1="1480" y1="520" x2="1280" y2="380" />
+  <line class="frame" style="stroke-width: 2" x1="1040" y1="700" x2="1200" y2="700" />
+  <rect class="part" x="1090" y="655" width="40" height="40" />
+  <rect class="part" x="1090" y="610" width="40" height="40" />
+  <rect class="part" x="1090" y="565" width="40" height="40" />
+
+  <!-- Rotary limit: a seesaw which can only tip so far, with a box on it -->
+  <path class="frame" d="M 1480,1055 L 1500,1015 L 1520,1055" />
+  <line id="plank" class="part" x1="1380" y1="1000" x2="1620" y2="1000" />
+  <circle joint="pivot" a="plank" cx="1500" cy="1000" r="5" />
+  <circle joint="limit" a="plank" min="-12" max="12" cx="1500" cy="1000" r="5" />
+  <rect class="part" x="1570" y="955" width="40" height="40" />
+</svg>

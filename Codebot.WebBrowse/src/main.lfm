@@ -1,0 +1,66 @@
+object MainForm: TMainForm
+  Left = 300
+  Height = 600
+  Top = 200
+  Width = 900
+  Caption = 'Web Browse'
+  ClientHeight = 600
+  ClientWidth = 900
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  Position = poScreenCenter
+  object AddressBar: TWebAddressBar
+    Left = 0
+    Height = 36
+    Top = 0
+    Width = 900
+    Align = alTop
+    Buttons = [abBack, abForward, abRefresh, abInspect]
+    HomePage = 'https://www.getlazarus.org'
+    WebBrowser = Browser
+  end
+  object StatusIndicator: TWebStatusIndicator
+    Left = 0
+    Height = 24
+    Top = 576
+    Width = 900
+    Align = alBottom
+    WebBrowser = Browser
+  end
+  object Splitter: TSplitter
+    Cursor = crVSplit
+    Left = 0
+    Height = 5
+    Top = 311
+    Width = 900
+    Align = alBottom
+    ResizeAnchor = akBottom
+    Visible = False
+  end
+  object InspectorBox: TCaptionBox
+    Left = 0
+    Height = 260
+    Top = 316
+    Width = 900
+    Align = alBottom
+    Caption = 'Inspector'
+    ShowClose = True
+    Visible = False
+    OnClose = InspectorBoxClose
+    object Inspector: TWebInspector
+      Left = 0
+      Height = 232
+      Top = 28
+      Width = 900
+      Align = alClient
+      WebBrowser = Browser
+    end
+  end
+  object Browser: TWebBrowser
+    Left = 0
+    Height = 280
+    Top = 36
+    Width = 900
+    Align = alClient
+  end
+end

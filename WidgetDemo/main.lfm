@@ -1,0 +1,17 @@
+object DemoForm: TDemoForm
+  Left = 160
+  Height = 720
+  Top = 120
+  Width = 1280
+  Caption = 'Widget Demo'
+  ClientHeight = 720
+  ClientWidth = 1280
+  OnCreate = FormCreate
+  object GraphicsBox: TGraphicsBox
+    Left = 0
+    Height = 720
+    Top = 0
+    Width = 1280
+    Align = alClient
+  end
+end

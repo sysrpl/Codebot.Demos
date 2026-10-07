@@ -1,0 +1,17 @@
+object JointForm: TJointForm
+  Left = 240
+  Height = 760
+  Top = 120
+  Width = 1280
+  Caption = 'Joint Demo'
+  ClientHeight = 760
+  ClientWidth = 1280
+  OnCreate = FormCreate
+  object GraphicsBox: TGraphicsBox
+    Left = 0
+    Height = 760
+    Top = 0
+    Width = 1280
+    Align = alClient
+  end
+end

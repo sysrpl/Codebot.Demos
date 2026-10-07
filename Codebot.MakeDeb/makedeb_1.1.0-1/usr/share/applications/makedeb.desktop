@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Debian Packager
+Comment=A tool to create deb packages easily
+Icon=makedeb
+Categories=Development
+Terminal=false
+Type=Application
+Exec=makedeb %u

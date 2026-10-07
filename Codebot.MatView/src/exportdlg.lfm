@@ -1,0 +1,198 @@
+object TestForm: TTestForm
+  Left = 461
+  Height = 572
+  Top = 35
+  Width = 763
+  BorderStyle = bsDialog
+  Caption = 'Export to PNG Image'
+  ClientHeight = 572
+  ClientWidth = 763
+  DesignTimePPI = 106
+  KeyPreview = True
+  OnCreate = FormCreate
+  OnKeyDown = FormKeyDown
+  OnPaint = FormPaint
+  OnShow = FormShow
+  Position = poScreenCenter
+  object PreviewLabel: TLabel
+    Left = 8
+    Height = 75
+    Top = 8
+    Width = 74
+    AutoSize = False
+    Caption = '󰀉'
+    Color = clDefault
+    Font.Color = clBlack
+    Font.Height = -74
+    Font.Name = 'Material Design Icons'
+    ParentColor = False
+    ParentFont = False
+    ParentShowHint = False
+    ShowHint = True
+    Transparent = False
+    Visible = False
+  end
+  object SaveButton: TButton
+    Left = 232
+    Height = 28
+    Hint = 'Save the png image'
+    Top = 232
+    Width = 83
+    Caption = 'Save'
+    OnClick = SaveButtonClick
+    ParentFont = False
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 0
+  end
+  object CloseButton: TButton
+    Left = 317
+    Height = 28
+    Hint = 'Close this dialog'
+    Top = 232
+    Width = 83
+    Caption = 'Close'
+    OnClick = CloseButtonClick
+    ParentFont = False
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 1
+  end
+  object BrowseButton: TSpeedButton
+    Left = 368
+    Height = 32
+    Hint = 'Browse for a folder location'
+    Top = 120
+    Width = 32
+    Caption = '󰝰'
+    Font.Height = -27
+    Font.Name = 'Material Design Icons'
+    OnClick = BrowseButtonClick
+    ShowHint = True
+    ParentFont = False
+    ParentShowHint = False
+  end
+  object FolderEdit: TEdit
+    Left = 8
+    Height = 28
+    Top = 120
+    Width = 352
+    ParentFont = False
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 2
+    Text = 'FolderEdit'
+  end
+  object FileEdit: TEdit
+    Left = 8
+    Height = 28
+    Top = 184
+    Width = 288
+    ParentFont = False
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 3
+    Text = 'FileEdit'
+  end
+  object FolderLabel: TLabel
+    Left = 8
+    Height = 17
+    Top = 96
+    Width = 48
+    Caption = 'Folder:'
+    Color = clDefault
+    ParentColor = False
+    ParentFont = False
+    ParentShowHint = False
+    ShowHint = True
+    Transparent = False
+  end
+  object FileLabel: TLabel
+    Left = 8
+    Height = 17
+    Top = 160
+    Width = 65
+    Caption = 'Filename:'
+    Color = clDefault
+    ParentColor = False
+    ParentFont = False
+    ParentShowHint = False
+    ShowHint = True
+    Transparent = False
+  end
+  object SizeEdit: TEdit
+    Left = 304
+    Height = 28
+    Hint = 'The size of the image in pixels'
+    Top = 184
+    Width = 77
+    OnExit = SizeEditExit
+    OnKeyPress = SizeEditKeyPress
+    ParentFont = False
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 4
+    Text = 'SizeEdit'
+  end
+  object SizeLabel: TLabel
+    Left = 304
+    Height = 17
+    Top = 160
+    Width = 31
+    Caption = 'Size:'
+    Color = clDefault
+    ParentColor = False
+    ParentFont = False
+    ParentShowHint = False
+    ShowHint = True
+    Transparent = False
+  end
+  object SizeSpinner: TUpDown
+    Left = 381
+    Height = 28
+    Top = 184
+    Width = 19
+    Associate = SizeEdit
+    Max = 256
+    Min = 12
+    OnChanging = SizeSpinnerChanging
+    ParentShowHint = False
+    Position = 64
+    ShowHint = True
+    TabOrder = 5
+  end
+  object InfoLabel: TLabel
+    Left = 88
+    Height = 96
+    Top = 8
+    Width = 312
+    AutoSize = False
+    Caption = 'glyphFolderOpen \uF0770'
+    Layout = tlCenter
+    ParentColor = False
+    ParentFont = False
+    ParentShowHint = False
+    ShowHint = True
+    WordWrap = True
+  end
+  object ColorButton: TColorButton
+    Left = 8
+    Height = 28
+    Top = 232
+    Width = 83
+    BorderWidth = 2
+    ButtonColorSize = 16
+    ButtonColor = clBlack
+  end
+  object BrowseDialog: TSelectDirectoryDialog
+    Left = 216
+    Top = 352
+  end
+  object InfoTimer: TTimer
+    Enabled = False
+    Interval = 10000
+    OnTimer = InfoTimerTimer
+    Left = 144
+    Top = 352
+  end
+end
