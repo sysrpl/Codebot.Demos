@@ -26,9 +26,6 @@ begin
   Application.Title := 'Chase';
   Application.Width := 800;
   Application.Height := 600;
-  { The demo is drawn without multisampling, which costs too much at 1080p on
-    small GPUs such as the Raspberry Pi }
-  Application.MultiSamples := 0;
   Application.Run(TChaseScene);
   {$else}
   RequireDerivedFormResource := True;
