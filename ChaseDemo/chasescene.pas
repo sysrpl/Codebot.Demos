@@ -22,6 +22,7 @@ uses
   Codebot.Hardware,
   Codebot.Render.Scenes,
   Codebot.Render.Widgets,
+  Codebot.Render.Widgets.Custom,
   Codebot.Render.Scenes.Widgets,
   SkinnedModel;
 
@@ -42,6 +43,10 @@ type
     { Uniform locations of the shadow and ground programs }
     FShadowBones: Integer;
     FGroundLightMatrix: Integer;
+    { Uniform locations which turn the shadows on and off }
+    FShadowsOn: Integer;
+    FGroundShadowsOn: Integer;
+    FShadowsButton: TGlyphButton;
     { The world matrix which scales the model and stands it on the ground }
     FWorld: TMatrix4x4;
     { The height of the point the camera orbits }
@@ -60,10 +65,17 @@ type
     FAnimationFiles: TStringList;
     FPanel: TWindow;
     FList: TListBox;
+    FFullscreen: TGlyphButton;
+    FStats: TPerformanceGraph;
     procedure BuildPanel;
+    procedure BuildStats;
     procedure LayoutPanel;
     procedure UpdateLight;
+    procedure UpdateFullscreenButton;
     procedure AnimationChange(Sender: TObject);
+    procedure FullscreenClick(Sender: TObject);
+    procedure ExitClick(Sender: TObject);
+    procedure ShadowsClick(Sender: TObject);
   public
     procedure Initialize; override;
     procedure Finalize; override;
@@ -82,7 +94,34 @@ implementation
   the shadow of the model. A #version line matching render.inc is added when
   the shaders are compiled. }
 
+{ On the Raspberry Pi the shaders are compiled as OpenGL ES, where sampler2DShadow
+  has no default precision and must be given one.
+
+  The shadow map is filtered, so each texture lookup compares four texels and
+  blends the results. Elsewhere the shadow is softened by nine lookups a texel
+  apart. The Raspberry Pi has too little fill rate for that at 1080p, so it
+  uses four lookups half a texel apart, which covers the same area with a
+  little less softening. }
+
 const
+{$if defined(linux) and (defined(cpuarm) or defined(cpuaarch64))}
+  ShadowPrecision = 'precision highp sampler2DShadow;'#10;
+  ShadowSamples =
+    '  float lit = 0.0;'#10 +
+    '  for (int x = 0; x < 2; x++)'#10 +
+    '    for (int y = 0; y < 2; y++)'#10 +
+    '      lit += texture(shadowMap, vec3(p.xy + (vec2(x, y) - 0.5) * texel, p.z));'#10 +
+    '  return lit / 4.0;'#10;
+{$else}
+  ShadowPrecision = '';
+  ShadowSamples =
+    '  float lit = 0.0;'#10 +
+    '  for (int x = -1; x <= 1; x++)'#10 +
+    '    for (int y = -1; y <= 1; y++)'#10 +
+    '      lit += texture(shadowMap, vec3(p.xy + vec2(x, y) * texel, p.z));'#10 +
+    '  return lit / 9.0;'#10;
+{$endif}
+
   ModelVertexShader =
     'uniform mat4 projection;'#10 +
     'uniform mat4 modelview;'#10 +
@@ -114,7 +153,9 @@ const
 
   ModelFragmentShader =
     'uniform sampler2D tex;'#10 +
+    ShadowPrecision +
     'uniform sampler2DShadow shadowMap;'#10 +
+    'uniform bool shadows;'#10 +
     'uniform vec3 lightDir;'#10 +
     #10 +
     'in vec2 coord;'#10 +
@@ -123,15 +164,13 @@ const
     'out vec4 fragColor;'#10 +
     #10 +
     'float shadow(vec4 c) {'#10 +
+    '  if (!shadows)'#10 +
+    '    return 1.0;'#10 +
     '  vec3 p = c.xyz / c.w * 0.5 + 0.5;'#10 +
     '  if (p.x < 0.0 || p.x > 1.0 || p.y < 0.0 || p.y > 1.0 || p.z > 1.0)'#10 +
     '    return 1.0;'#10 +
     '  vec2 texel = 1.0 / vec2(textureSize(shadowMap, 0));'#10 +
-    '  float lit = 0.0;'#10 +
-    '  for (int x = -1; x <= 1; x++)'#10 +
-    '    for (int y = -1; y <= 1; y++)'#10 +
-    '      lit += texture(shadowMap, vec3(p.xy + vec2(x, y) * texel, p.z));'#10 +
-    '  return lit / 9.0;'#10 +
+    ShadowSamples +
     '}'#10 +
     #10 +
     'void main() {'#10 +
@@ -183,22 +222,22 @@ const
     '}'#10;
 
   GroundFragmentShader =
+    ShadowPrecision +
     'uniform sampler2DShadow shadowMap;'#10 +
+    'uniform bool shadows;'#10 +
     #10 +
     'in vec3 world;'#10 +
     'in vec4 shadowCoord;'#10 +
     'out vec4 fragColor;'#10 +
     #10 +
     'float shadow(vec4 c) {'#10 +
+    '  if (!shadows)'#10 +
+    '    return 1.0;'#10 +
     '  vec3 p = c.xyz / c.w * 0.5 + 0.5;'#10 +
     '  if (p.x < 0.0 || p.x > 1.0 || p.y < 0.0 || p.y > 1.0 || p.z > 1.0)'#10 +
     '    return 1.0;'#10 +
     '  vec2 texel = 1.0 / vec2(textureSize(shadowMap, 0));'#10 +
-    '  float lit = 0.0;'#10 +
-    '  for (int x = -1; x <= 1; x++)'#10 +
-    '    for (int y = -1; y <= 1; y++)'#10 +
-    '      lit += texture(shadowMap, vec3(p.xy + vec2(x, y) * texel, p.z));'#10 +
-    '  return lit / 9.0;'#10 +
+    ShadowSamples +
     '}'#10 +
     #10 +
     'float grid(float spacing, float width) {'#10 +
@@ -228,6 +267,11 @@ const
   { The width of the animation list and the space around the panel }
   ListWidth = 220;
   PanelMargin = 10;
+  { Material design icons for the buttons above the list }
+  GlyphFullscreen = #$F3#$B0#$8A#$93;
+  GlyphFullscreenExit = #$F3#$B0#$8A#$94;
+  GlyphExit = #$F3#$B0#$85#$9A;
+  GlyphShadows = #$F3#$B0#$98#$B7;
 
 { The assets folder is looked for next to the program and then in the
   current folder }
@@ -279,6 +323,8 @@ begin
   FLightDir := Uniform(FProgram, 'lightDir');
   FShadowBones := Uniform(FShadowProgram, 'bones');
   FGroundLightMatrix := Uniform(FGroundProgram, 'light');
+  FShadowsOn := Uniform(FProgram, 'shadows');
+  FGroundShadowsOn := Uniform(FGroundProgram, 'shadows');
   { The diffuse texture is in slot 0 and the shadow map is in slot 1 }
   FProgram.Push;
   Ctx.SetUniform(Uniform(FProgram, 'tex'), 0);
@@ -308,6 +354,7 @@ begin
   FShadow := TShadowBuffer.Create(2048);
   FAnimationFiles := TStringList.Create;
   BuildPanel;
+  BuildStats;
   FStart := Time;
 end;
 
@@ -324,7 +371,8 @@ begin
 end;
 
 { The panel is a window on the left side of the scene, sector 4, holding a
-  list of the rest pose and the animation files }
+  row with the shadows, fullscreen, and exit buttons on the right above a list of the rest pose and
+  the animation files }
 
 procedure TChaseScene.BuildPanel;
 var
@@ -361,6 +409,32 @@ begin
   FPanel.CloseButton := False;
   FPanel.Sector := 4;
   FPanel.Margin := PanelMargin;
+  with FPanel.Add<THBox> do
+  begin
+    Align := alignFar;
+    Margin := 0;
+    with This.Add<TGlyphButton>(FShadowsButton) do
+    begin
+      CanToggle := True;
+      Down := True;
+      Text := GlyphShadows;
+      Hint := 'Turn the shadows off';
+      OnClick := ShadowsClick;
+    end;
+    with This.Add<TGlyphButton>(FFullscreen) do
+    begin
+      CanToggle := True;
+      Down := (Host.Window <> nil) and Host.Window.Fullscreen;
+      OnClick := FullscreenClick;
+    end;
+    with This.Add<TGlyphButton> do
+    begin
+      Text := GlyphExit;
+      Hint := 'Exit this program';
+      OnClick := ExitClick;
+    end;
+  end;
+  UpdateFullscreenButton;
   FList := FPanel.Add<TListBox>;
   FList.Width := ListWidth;
   FList.Items := Items;
@@ -380,6 +454,72 @@ begin
   if Extra < 0 then
     Extra := 0;
   FList.Height := Max(80, Height - PanelMargin * 2 - Extra);
+end;
+
+{ The performance graph is pinned to the top of the scene, sector 2, in a
+  faded box like the one in the mega demo, and is always visible }
+
+procedure TChaseScene.BuildStats;
+begin
+  with Widget.Add<THBox> do
+  begin
+    Sector := 2;
+    Margin := -5;
+    Fade := 0.15;
+    with This.Add<TPerformanceGraph>(FStats) do
+    begin
+      Width := 500;
+      Height := 50;
+      Margin := 5;
+    end;
+  end;
+end;
+
+{ The fullscreen button shows the glyph of the mode it switches to. F1 also
+  toggles fullscreen in the SDL application, so the button follows the window
+  each frame. }
+
+procedure TChaseScene.UpdateFullscreenButton;
+var
+  Full: Boolean;
+begin
+  Full := (Host.Window <> nil) and Host.Window.Fullscreen;
+  if FFullscreen.Down <> Full then
+    FFullscreen.Down := Full;
+  if Full then
+  begin
+    FFullscreen.Text := GlyphFullscreenExit;
+    FFullscreen.Hint := 'Switch to windowed mode';
+  end
+  else
+  begin
+    FFullscreen.Text := GlyphFullscreen;
+    FFullscreen.Hint := 'Switch to fullscreen mode';
+  end;
+end;
+
+procedure TChaseScene.FullscreenClick(Sender: TObject);
+begin
+  if Host.Window <> nil then
+    Host.Window.Fullscreen := FFullscreen.Down;
+  UpdateFullscreenButton;
+end;
+
+{ When the shadows are off the shadow map is not drawn and the shaders treat
+  everything as lit }
+
+procedure TChaseScene.ShadowsClick(Sender: TObject);
+begin
+  if FShadowsButton.Down then
+    FShadowsButton.Hint := 'Turn the shadows off'
+  else
+    FShadowsButton.Hint := 'Turn the shadows on';
+end;
+
+procedure TChaseScene.ExitClick(Sender: TObject);
+begin
+  if Host.Window <> nil then
+    Host.Window.Close;
 end;
 
 { Choosing an animation plays it from the start. A file which cannot be loaded
@@ -441,16 +581,20 @@ begin
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   FModel.Animate(Time - FStart, Bones);
   UpdateLight;
-  { Draw the depth of the model as seen by the light into the shadow buffer }
-  FShadow.StartRecording;
-  Ctx.SetProjection(FLightProjection);
-  Ctx.SetModelview(FLightView * FWorld);
-  FShadowProgram.Push;
-  glUniformMatrix4fv(FShadowBones, FModel.BoneCount, GL_FALSE, @Bones[0]);
-  FModel.SetProgram(FShadowProgram.Handle);
-  FModel.Draw;
-  FShadowProgram.Pop;
-  FShadow.StopRecording;
+  { Draw the depth of the model as seen by the light into the shadow buffer,
+    unless the shadows are turned off }
+  if FShadowsButton.Down then
+  begin
+    FShadow.StartRecording;
+    Ctx.SetProjection(FLightProjection);
+    Ctx.SetModelview(FLightView * FWorld);
+    FShadowProgram.Push;
+    glUniformMatrix4fv(FShadowBones, FModel.BoneCount, GL_FALSE, @Bones[0]);
+    FModel.SetProgram(FShadowProgram.Handle);
+    FModel.Draw;
+    FShadowProgram.Pop;
+    FShadow.StopRecording;
+  end;
   { The camera orbits a point above the origin at the middle height of the
     model }
   Ctx.SetViewport(0, 0, Width, H);
@@ -471,6 +615,7 @@ begin
   Ctx.SetUniform(FModelMatrix, FWorld);
   Ctx.SetUniform(FLightMatrix, FLight);
   Ctx.SetUniform(FLightDir, LightDirection);
+  Ctx.SetUniform(FShadowsOn, FShadowsButton.Down);
   FModel.SetProgram(FProgram.Handle);
   FModel.Draw;
   FProgram.Pop;
@@ -478,6 +623,7 @@ begin
   Ctx.SetModelview(View);
   FGroundProgram.Push;
   Ctx.SetUniform(FGroundLightMatrix, FLight);
+  Ctx.SetUniform(FGroundShadowsOn, FShadowsButton.Down);
   Ctx.PushCulling(False);
   FGround.Draw;
   Ctx.PopCulling;
@@ -485,6 +631,7 @@ begin
   Ctx.PopTexture;
   { The panel is sized to the scene before the widgets are drawn }
   LayoutPanel;
+  UpdateFullscreenButton;
   WidgetsRender;
 end;
 

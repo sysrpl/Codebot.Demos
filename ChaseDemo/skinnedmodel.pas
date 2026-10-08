@@ -417,6 +417,7 @@ var
   Local: TMatrix4x4;
   I: Integer;
 begin
+  Bones := Default(TBoneMatrices);
   for I := Low(Bones) to High(Bones) do
     Bones[I].Identity;
   Ticks := 0;

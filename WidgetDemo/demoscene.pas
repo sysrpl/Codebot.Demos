@@ -19,6 +19,7 @@ uses
   Codebot.Platform,
   Codebot.Graphics.Types,
   Codebot.Render.Graphics,
+  Codebot.OpenGL,
   Codebot.Render.Scenes,
   Codebot.Render.Widgets,
   Codebot.Render.Widgets.Themes,
@@ -1026,9 +1027,12 @@ end;
   textures folder of the assets. Each has its name in a comment on a line
   such as "// name: Grayscale". The video widget draws an effect in one pass
   from the picture of the video alone, so shaders which need a second
-  texture are left out. }
+  texture are left out. When OpenGL ES is selected in render.inc, as it is
+  on the Raspberry Pi, the copies in the effects-gles folder are used. }
 
 procedure TDemoScene.LoadEffects;
+const
+  EffectsFolder: array[Boolean] of string = ('effects', 'effects-gles');
 var
   Search: TSearchRec;
   Names: StringArray;
@@ -1036,7 +1040,8 @@ var
   A, B, I, J: Integer;
 begin
   Folder := ExtractFilePath(ExcludeTrailingPathDelimiter(ExtractFilePath(
-    Context.GetAssetFile('textures/wallpaper.jpg')))) + 'effects' + PathDelim;
+    Context.GetAssetFile('textures/wallpaper.jpg')))) +
+    EffectsFolder[OpenGLEmbedded] + PathDelim;
   if SysUtils.FindFirst(Folder + '*.frag', SysUtils.faAnyFile, Search) = 0 then
   try
     repeat

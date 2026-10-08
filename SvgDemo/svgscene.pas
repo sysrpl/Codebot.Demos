@@ -92,7 +92,7 @@ type
     procedure BuildDialog;
     procedure LoadIcons;
     procedure SelectDocument(Index: Integer);
-    procedure Step(Delta: Integer);
+    procedure StepDocument(Delta: Integer);
     procedure UpdateInfo;
     procedure DrawDocument(Options: TSvgRenderOptions);
     procedure DrawGrid(Options: TSvgRenderOptions);
@@ -424,9 +424,9 @@ begin
   UpdateInfo;
 end;
 
-{ Step moves to the next or prior document, or shifts the icons in the grid }
+{ StepDocument moves to the next or prior document, or shifts the icons in the grid }
 
-procedure TSvgDemoScene.Step(Delta: Integer);
+procedure TSvgDemoScene.StepDocument(Delta: Integer);
 begin
   if FView = viewDocument then
     SelectDocument(FDocumentIndex + Delta)
@@ -483,7 +483,7 @@ end;
 
 procedure TSvgDemoScene.StepClick(Sender: TObject);
 begin
-  Step((Sender as TWidget).Tag);
+  StepDocument((Sender as TWidget).Tag);
 end;
 
 procedure TSvgDemoScene.SizeChange(Sender: TObject);
@@ -738,9 +738,9 @@ begin
   if Args.Handled then
     Exit;
   if Args.Key = VK_LEFT then
-    Step(-1)
+    StepDocument(-1)
   else if Args.Key = VK_RIGHT then
-    Step(1)
+    StepDocument(1)
   else
     Exit;
   Args.Handled := True;

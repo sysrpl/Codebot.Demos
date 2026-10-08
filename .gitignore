@@ -1,0 +1,27 @@
+# Build output folders
+lib/
+backup/
+
+# Compiled units, objects and resources
+*.o
+*.ppu
+*.a
+*.or
+*.res
+*.compiled
+*.exe
+*.dbg
+
+# Demo executables
+CardsDemo/cardsdemo
+ChaseDemo/chasedemo
+CubeDemo/cubedemo
+DrawDemo/drawdemo
+EasingsDemo/easingsdemo
+JointDemo/jointdemo
+MachineDemo/machinedemo
+MegaDemo/megademo
+PhysicsDemo/physicsdemo
+SvgDemo/svgdemo
+WidgetDemo/widgetdemo
+Codebot.MakeDeb/makedeb

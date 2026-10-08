@@ -64,25 +64,13 @@
     </RunParams>
     <RequiredPackages>
       <Item>
-        <PackageName Value="codebot_controls_design"/>
-      </Item>
-      <Item>
         <PackageName Value="codebot"/>
-      </Item>
-      <Item>
-        <PackageName Value="codebot_render_design"/>
       </Item>
       <Item>
         <PackageName Value="codebot_render"/>
       </Item>
       <Item>
-        <PackageName Value="codebot_render_controls"/>
-      </Item>
-      <Item>
         <PackageName Value="codebot_render_sdl"/>
-      </Item>
-      <Item>
-        <PackageName Value="LCL"/>
       </Item>
     </RequiredPackages>
     <Units>
