@@ -19,7 +19,7 @@ object MainForm: TMainForm
     Align = alTop
     BorderSpacing.Around = 8
     TabOrder = 0
-    Text = 'test.rebex.net'
+    Text = 'ftp://test.rebex.net'
     TextHint = 'ftp.example.com'
     OnKeyDown = SiteEditKeyDown
   end
@@ -30,7 +30,6 @@ object MainForm: TMainForm
     Width = 784
     BusyDelay = 20
     Align = alBottom
-    Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Left = 8
     BorderSpacing.Right = 8
     Caption = 'Ready'
@@ -128,13 +127,20 @@ object MainForm: TMainForm
       UseDockManager = False
       OnDblClick = FileGridDblClick
       OnResize = FileGridResize
+      object HeaderBar1: THeaderBar
+        Left = 431
+        Height = 24
+        Top = 351
+        Width = 160
+        Columns = <>
+      end
     end
   end
   object SelectTimer: TTimer
     Enabled = False
     Interval = 300
     OnTimer = SelectTimerTimer
-    Left = 400
-    Top = 200
+    Left = 56
+    Top = 376
   end
 end

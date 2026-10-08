@@ -90,8 +90,8 @@
           <Linking>
             <Debugging>
               <GenerateDebugInfo Value="False"/>
-              <StripSymbols Value="True"/>
               <DebugInfoType Value="dsDwarf3"/>
+              <StripSymbols Value="True"/>
             </Debugging>
             <LinkSmart Value="True"/>
             <Options>
@@ -192,6 +192,9 @@
       </SyntaxOptions>
     </Parsing>
     <Linking>
+      <Debugging>
+        <DebugInfoType Value="dsDwarf3"/>
+      </Debugging>
       <Options>
         <Win32>
           <GraphicApplication Value="True"/>

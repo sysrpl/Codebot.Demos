@@ -5,14 +5,12 @@ unit Demo.VectorClock;
 interface
 
 uses
-  SysUtils, Math,
+  SysUtils,
   Codebot.System,
   Codebot.Platform,
   Codebot.Graphics.Types,
-  Codebot.Geometry,
   Codebot.Render.Contexts,
   Codebot.Render.Graphics,
-  Codebot.Render.Scenes,
   Demo.Scene;
 
 { TVectorClock }

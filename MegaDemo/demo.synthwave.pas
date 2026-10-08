@@ -5,7 +5,7 @@ unit Demo.Synthwave;
 interface
 
 uses
-  SysUtils, Math,
+  SysUtils,
   Codebot.System,
   Codebot.Graphics.Types,
   Codebot.Geometry,

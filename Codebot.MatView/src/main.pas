@@ -8,7 +8,7 @@ uses
   MaterialFont, Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls,
   LCLType, LCLIntf, Buttons, ExtCtrls, ComCtrls, Codebot.System, Codebot.Text,
   Codebot.Text.Xml, Codebot.Controls.Scrolling, Codebot.Controls.Grids,
-  Codebot.Graphics, Codebot.Graphics.Types, ExportDlg;
+  Codebot.Graphics, Codebot.Graphics.Types, Codebot.WebKit.Controls, ExportDlg;
 
 { TMaterialIconForm }
 

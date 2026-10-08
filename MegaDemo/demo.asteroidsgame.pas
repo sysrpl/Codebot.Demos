@@ -5,7 +5,7 @@ unit Demo.AsteroidsGame;
 interface
 
 uses
-  SysUtils, Math,
+  SysUtils,
   Codebot.System,
   Codebot.Platform,
   Codebot.Graphics.Types,

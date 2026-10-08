@@ -46,6 +46,7 @@ type
 { TMainForm }
 
   TMainForm = class(TForm)
+    HeaderBar1: THeaderBar;
     SiteEdit: TEdit;
     SelectTimer: TTimer;
     GridPanel: TPanel;
