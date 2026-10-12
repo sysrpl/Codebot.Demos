@@ -35,6 +35,13 @@ begin
       ResSaveData('materialdesignicons', S);
       Result := True;
       {$endif}
+      {$ifdef darwin}
+      S := PathCombine(StrEnvironmentVariable('HOME'), 'Library/Fonts');
+      DirCreate(S);
+      S := PathCombine(S, MaterialFontFile);
+      ResSaveData('materialdesignicons', S);
+      Result := True;
+      {$endif}
       {$ifdef windows}
       if GetPlatform = platformWindowsXP then
       begin

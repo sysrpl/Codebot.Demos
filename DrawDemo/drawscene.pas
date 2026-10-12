@@ -24,7 +24,9 @@ uses
   Codebot.Render.Scenes.Widgets,
   Codebot.Interop.Chipmunk2D,
   Codebot.Physics,
-  Codebot.Render.Scenes.Physics;
+  Codebot.Render.Scenes.Physics,
+  Codebot.OpenGL,
+  Codebot.Render.Assets;
 
 { TDrawScene is a scene where users can draw hollow or solid physics objects
   using a simulated crayon style.
@@ -59,6 +61,8 @@ type
     FBlueCrayon: IBitmapBrush;
     FRedCrayon: IBitmapBrush;
     FBackground: IBitmap;
+    { True when the A key was pressed and the next frame is to be saved }
+    FCapture: Boolean;
     FGlyph: IFont;
     FDraw: TGlyphButton;
     FFill: TGlyphButton;
@@ -73,6 +77,7 @@ type
     FIsDrawing: Boolean;
     FIsFilling: Boolean;
     FIsErasing: Boolean;
+    procedure SaveScene;
     procedure GenerateWidgets;
     procedure UpdateCursor(X, Y: Float);
     procedure AddSolid;
@@ -218,9 +223,58 @@ begin
     Mouse.Cursor := cursorDefault;
 end;
 
+{ Save everything drawn this frame as a png, for testing. The file is written
+  beside the assets folder and named after the time. }
+
+procedure TDrawScene.SaveScene;
+var
+  Pixels: array of Byte;
+  Bitmap: IBitmapData;
+  Source, Dest: PByte;
+  Folder, FileName: string;
+  X, Y: Integer;
+begin
+  if (Width < 1) or (Height < 1) then
+    Exit;
+  SetLength(Pixels, Width * Height * 4);
+  glFinish;
+  glPixelStorei(GL_PACK_ALIGNMENT, 1);
+  glReadPixels(0, 0, Width, Height, GL_RGBA, GL_UNSIGNED_BYTE, @Pixels[0]);
+  Bitmap := NewBitmapData;
+  Bitmap.SetSize(Width, Height);
+  { OpenGL rows run from the bottom up in red, green, blue order, and bitmap
+    rows from the top down in blue, green, red order }
+  Dest := Bitmap.Pixels;
+  for Y := Height - 1 downto 0 do
+  begin
+    Source := @Pixels[Y * Width * 4];
+    for X := 0 to Width - 1 do
+    begin
+      Dest[0] := Source[2];
+      Dest[1] := Source[1];
+      Dest[2] := Source[0];
+      Dest[3] := $FF;
+      Inc(Source, 4);
+      Inc(Dest, 4);
+    end;
+  end;
+  if AssetFindFolder(Folder) then
+    Folder := ExtractFilePath(ExcludeTrailingPathDelimiter(Folder))
+  else
+    Folder := IncludeTrailingPathDelimiter(GetCurrentDir);
+  FileName := Folder + 'drawdemo-' + FormatDateTime('yyyymmdd-hhnnss', Now) + '.png';
+  Bitmap.SaveToFile(FileName);
+end;
+
 procedure TDrawScene.DoKeyDown(var Args: TSceneKeyArgs);
 begin
   inherited DoKeyDown(Args);
+  { The A key saves the scene as a png once the frame has been drawn }
+  if (not Args.Handled) and (Args.Key = VK_A) and (not Args.Repeated) then
+  begin
+    FCapture := True;
+    Args.Handled := True;
+  end;
   if (not Args.Handled) and (Args.Key = VK_ESCAPE) then
   begin
     ExitClick(nil);
@@ -595,6 +649,11 @@ begin
   end;
   { Draw the user interface controls }
   WidgetsRender;
+  if FCapture then
+  begin
+    FCapture := False;
+    SaveScene;
+  end;
 end;
 
 end.

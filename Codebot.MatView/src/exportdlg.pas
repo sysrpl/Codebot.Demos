@@ -305,6 +305,9 @@ const
 {$ifdef windows}
   IconScale = 0.4;
 {$endif}
+{$ifdef darwin}
+  IconScale = 0.6;
+{$endif}
 var
   M: Integer;
   S: string;

@@ -2,12 +2,6 @@ unit DemoScene;
 
 {$mode delphi}
 
-{ The video dialog uses TVideoWidget, which is only in codebot_render when
-  videowidget is defined in its render.inc. Remove this define if it is not
-  defined there, and the dialog will say that video is not included. }
-
-{$define videowidget}
-
 interface
 
 { This unit holds the widget scene. It does not use StdCtrls, so names such
@@ -24,11 +18,18 @@ uses
   Codebot.Render.Widgets,
   Codebot.Render.Widgets.Themes,
   Codebot.Render.Widgets.Custom,
-  {$ifdef videowidget}
   Codebot.Render.Widgets.Video,
-  {$endif}
   Codebot.Render.Scenes.Widgets,
   MaterialFont;
+
+{ The video dialog uses TVideoWidget, which is only in codebot_render when
+  videowidget is defined in its render.inc. Codebot.Render.Widgets.Video is
+  an empty unit when it is not, so videowidget is defined here only if the
+  widget is there. Without it the dialog says that video is not included. }
+
+{$if declared(TVideoWidget)}
+  {$define videowidget}
+{$endif}
 
 { TDemoScene shows dialogs of widgets over a wallpaper.
 
