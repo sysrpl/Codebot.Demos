@@ -11,17 +11,27 @@ object MainForm: TMainForm
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnShow = FormShow
   object SiteEdit: TEdit
     Left = 8
     Height = 28
     Top = 8
-    Width = 784
-    Align = alTop
-    BorderSpacing.Around = 8
+    Width = 688
+    Anchors = [akTop, akLeft, akRight]
     TabOrder = 0
     Text = 'ftp://test.rebex.net'
     TextHint = 'ftp.example.com'
     OnKeyDown = SiteEditKeyDown
+  end
+  object ConnectButton: TButton
+    Left = 704
+    Height = 28
+    Top = 8
+    Width = 88
+    Anchors = [akTop, akRight]
+    Caption = 'Connect'
+    TabOrder = 3
+    OnClick = ConnectButtonClick
   end
   object Progress: TIndeterminateProgress
     Left = 8
@@ -40,6 +50,7 @@ object MainForm: TMainForm
     Top = 44
     Width = 240
     Align = alRight
+    BorderSpacing.Top = 44
     BorderSpacing.Right = 8
     BevelOuter = bvNone
     ClientHeight = 404
@@ -72,6 +83,7 @@ object MainForm: TMainForm
     Width = 539
     Align = alClient
     BorderSpacing.Left = 8
+    BorderSpacing.Top = 44
     BevelOuter = bvNone
     ClientHeight = 404
     ClientWidth = 539
@@ -104,6 +116,7 @@ object MainForm: TMainForm
           Width = 150
         end>
       Align = alTop
+      OnColumnClick = HeaderColumnClick
       OnColumnResize = HeaderColumnResize
     end
     object FileGrid: TContentGrid

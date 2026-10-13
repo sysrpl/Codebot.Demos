@@ -48,6 +48,7 @@ type
   TMainForm = class(TForm)
     HeaderBar1: THeaderBar;
     SiteEdit: TEdit;
+    ConnectButton: TButton;
     SelectTimer: TTimer;
     GridPanel: TPanel;
     Header: THeaderBar;
@@ -58,12 +59,15 @@ type
     Progress: TIndeterminateProgress;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure SiteEditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure ConnectButtonClick(Sender: TObject);
     procedure FileGridDrawCell(Sender: TObject; Surface: ISurface; Col, Row: Integer;
       Rect: TRectI; State: TDrawState);
     procedure FileGridDblClick(Sender: TObject);
     procedure HeaderColumnResize(Sender: TObject; Column: THeaderColumn);
+    procedure HeaderColumnClick(Sender: TObject; Column: THeaderColumn);
     procedure FileGridSelection(Sender: TObject; Col, Row: Integer; var Allow: Boolean);
     procedure FileGridHotTrack(Sender: TObject; Col, Row: Integer; var Allow: Boolean);
     procedure FileGridDrawRow(Sender: TObject; Surface: ISurface; Row: Integer;
@@ -76,6 +80,8 @@ type
     FClosing: Boolean;
     FReconnect: Boolean;
     FHotRow: Integer;
+    FSortColumn: Integer;
+    FSortOrder: TSortingOrder;
     FHost: string;
     FPath: string;
     FItems: TArray<TRemoteFindData>;
@@ -86,8 +92,10 @@ type
     FImageShown: string;
     FError: string;
     procedure Run(Work, Done: TThreadMethod; const Status: string);
+    procedure Connect;
     procedure OpenFolder(const Path: string);
     procedure SyncColumns;
+    procedure SortEntries;
     function JoinPath(const Folder, Name: string): string;
     function SelectedImage: string;
     procedure ShowSelected;
@@ -135,6 +143,8 @@ begin
   FClient := TFtpClient.Create;
   FReconnect := True;
   FHotRow := -1;
+  FSortColumn := 0;
+  FSortOrder := soAscend;
   FileGrid.ColCount := Header.Columns.Count;
   FileGrid.RowCount := 0;
   SyncColumns;
@@ -143,6 +153,15 @@ end;
 procedure TMainForm.FormDestroy(Sender: TObject);
 begin
   FClient.Free;
+end;
+
+{ The edit box takes its height from the platform, so once the form shows the
+  button is given the same top and bottom as the edit box }
+
+procedure TMainForm.FormShow(Sender: TObject);
+begin
+  ConnectButton.SetBounds(ConnectButton.Left, SiteEdit.Top, ConnectButton.Width,
+    SiteEdit.Height);
 end;
 
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -157,13 +176,23 @@ end;
 
 procedure TMainForm.SiteEditKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
-var
-  S: string;
-  I: Integer;
 begin
   if Key <> VK_RETURN then
     Exit;
   Key := 0;
+  Connect;
+end;
+
+procedure TMainForm.ConnectButtonClick(Sender: TObject);
+begin
+  Connect;
+end;
+
+procedure TMainForm.Connect;
+var
+  S: string;
+  I: Integer;
+begin
   if FBusy then
     Exit;
   { Accept a site with an optional ftp:// prefix and folder path }
@@ -254,6 +283,92 @@ end;
 procedure TMainForm.HeaderColumnResize(Sender: TObject; Column: THeaderColumn);
 begin
   SyncColumns;
+  FileGrid.Invalidate;
+end;
+
+{ Clicking a header column sorts the grid by that column, and clicking it
+  again reverses the order }
+
+procedure TMainForm.HeaderColumnClick(Sender: TObject; Column: THeaderColumn);
+begin
+  if Column.Index = FSortColumn then
+  begin
+    if FSortOrder = soAscend then
+      FSortOrder := soDescend
+    else
+      FSortOrder := soAscend;
+  end
+  else
+  begin
+    FSortColumn := Column.Index;
+    FSortOrder := soAscend;
+  end;
+  SortEntries;
+end;
+
+{ SortEntries orders the rows by the sort column. The parent folder stays the
+  first row, the folders stay above the files, and the selected entry stays
+  selected. }
+
+procedure TMainForm.SortEntries;
+
+  function Compare(const A, B: TEntry): Integer;
+  begin
+    Result := Ord(A.Kind) - Ord(B.Kind);
+    if Result <> 0 then
+      Exit;
+    case FSortColumn of
+      1:
+        if A.Size < B.Size then
+          Result := -1
+        else if A.Size > B.Size then
+          Result := 1;
+      2:
+        if A.Date < B.Date then
+          Result := -1
+        else if A.Date > B.Date then
+          Result := 1;
+    end;
+    { Entries which are the same in the column are ordered by name }
+    if Result = 0 then
+      Result := CompareText(A.Name, B.Name);
+    if FSortOrder = soDescend then
+      Result := -Result;
+  end;
+
+var
+  Selected: string;
+  Entry: TEntry;
+  I, J: Integer;
+begin
+  for I := 0 to Header.Columns.Count - 1 do
+    if I = FSortColumn then
+      Header.Columns[I].Sort := FSortOrder
+    else
+      Header.Columns[I].Sort := soNone;
+  Selected := '';
+  I := FileGrid.Selection.Y;
+  if (I > -1) and (I < Length(FEntries)) and (FEntries[I].Kind <> ekParent) then
+    Selected := FEntries[I].Name;
+  { An insertion sort, as a folder has few entries }
+  for I := 1 to Length(FEntries) - 1 do
+  begin
+    Entry := FEntries[I];
+    J := I - 1;
+    while (J > -1) and (Compare(FEntries[J], Entry) > 0) do
+    begin
+      FEntries[J + 1] := FEntries[J];
+      Dec(J);
+    end;
+    FEntries[J + 1] := Entry;
+  end;
+  if Selected <> '' then
+    for I := 0 to Length(FEntries) - 1 do
+      if (FEntries[I].Kind <> ekParent) and (FEntries[I].Name = Selected) then
+      begin
+        FileGrid.Selection := Point(0, I);
+        Break;
+      end;
   FileGrid.Invalidate;
 end;
 
@@ -517,6 +632,7 @@ begin
     if not (fsaDirectory in Data.Attributes) then
       Add(ekFile, Data);
   FileGrid.RowCount := Count;
+  SortEntries;
   if Count > 0 then
     FileGrid.Selection := Point(0, 0);
   FileGrid.Invalidate;

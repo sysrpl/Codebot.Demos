@@ -242,6 +242,157 @@ begin
 end;
 {$endif}
 
+{$ifdef darwin}
+{ On macOS the time each processor has spent working and idle comes from
+  host_processor_info, and the model and speed come from sysctl }
+
+const
+  ProcessorCpuLoadInfo = 2;
+  CpuStateUser = 0;
+  CpuStateSystem = 1;
+  CpuStateIdle = 2;
+  CpuStateNice = 3;
+  CpuStateMax = 4;
+
+type
+  TMachPort = LongWord;
+  TCpuLoad = array[0..CpuStateMax - 1] of LongWord;
+  PCpuLoad = ^TCpuLoad;
+
+function task_self_trap: TMachPort; cdecl; external;
+function mach_host_self: TMachPort; cdecl; external;
+function host_processor_info(Host: TMachPort; Flavor: LongInt; out Count: LongWord;
+  out Info: PCpuLoad; out InfoCount: LongWord): LongInt; cdecl; external;
+function vm_deallocate(Task: TMachPort; Address, Size: PtrUInt): LongInt; cdecl; external;
+function sysctlbyname(Name: PChar; OldValue: Pointer; var OldSize: PtrUInt;
+  NewValue: Pointer; NewSize: PtrUInt): LongInt; cdecl; external;
+
+type
+  TMacCoreData = record
+    Idle: Int64;
+    Total: Int64;
+  end;
+
+{ TMacMonitor }
+
+  TMacMonitor = class(TProcessorMonitor)
+  private
+    FHost: TMachPort;
+    FTask: TMachPort;
+    FCoreData: TArrayList<TMacCoreData>;
+    function ReadCores(out Data: TArrayList<TMacCoreData>): Boolean;
+    procedure CopyUsage;
+  protected
+    procedure Initialize; override;
+    procedure Work(Thread: TSimpleThread); override;
+  end;
+
+  TProcessorMontiorImpl = TMacMonitor;
+
+{ ReadCores reads the idle and total time of every processor }
+
+function TMacMonitor.ReadCores(out Data: TArrayList<TMacCoreData>): Boolean;
+var
+  Info, Load: PCpuLoad;
+  Count, InfoCount: LongWord;
+  Item: TMacCoreData;
+  I: Integer;
+begin
+  Data.Length := 0;
+  Info := nil;
+  Result := host_processor_info(FHost, ProcessorCpuLoadInfo, Count, Info, InfoCount) = 0;
+  if not Result then
+    Exit;
+  Load := Info;
+  for I := 0 to Count - 1 do
+  begin
+    Item.Idle := Load[CpuStateIdle];
+    Item.Total := Item.Idle + Load[CpuStateUser] + Load[CpuStateSystem] + Load[CpuStateNice];
+    Data.Push(Item);
+    Inc(Load);
+  end;
+  {$push}{$warn 4055 off}
+  vm_deallocate(FTask, PtrUInt(Info), InfoCount * SizeOf(LongInt));
+  {$pop}
+end;
+
+procedure TMacMonitor.Initialize;
+var
+  Buffer: array[0..255] of Char;
+  Hertz: Int64;
+  Size: PtrUInt;
+  I: Integer;
+begin
+  FHost := mach_host_self;
+  FTask := task_self_trap;
+  Size := SizeOf(Buffer) - 1;
+  Buffer[0] := #0;
+  if sysctlbyname('machdep.cpu.brand_string', @Buffer, Size, nil, 0) = 0 then
+  begin
+    Buffer[SizeOf(Buffer) - 1] := #0;
+    FModel := PChar(@Buffer);
+  end;
+  Hertz := 0;
+  Size := SizeOf(Hertz);
+  if sysctlbyname('hw.cpufrequency_max', @Hertz, Size, nil, 0) <> 0 then
+  begin
+    Hertz := 0;
+    Size := SizeOf(Hertz);
+    if sysctlbyname('hw.cpufrequency', @Hertz, Size, nil, 0) <> 0 then
+      Hertz := 0;
+  end;
+  FSpeed := Hertz div 1000000;
+  ReadCores(FCoreData);
+  for I := 1 to FCoreData.Length do
+    FCores.Push(TProcessorCore.Create);
+  FUsage.Length := FCores.Length;
+end;
+
+procedure TMacMonitor.CopyUsage;
+var
+  Core: TProcessorCore;
+  T: Double;
+  U: PProcessorUsage;
+  I: Integer;
+begin
+  Inc(FTicks);
+  T := TimeQuery;
+  for I := 0 to FCores.Length - 1 do
+  begin
+    Core := FCores[I];
+    Core.Next;
+    U := @Core.FUsage.Items[Core.FIndex];
+    U.Time := T;
+    U.Utilization := FUsage[I].Utilization;
+    U.Speed := FUsage[I].Speed;
+  end;
+end;
+
+procedure TMacMonitor.Work(Thread: TSimpleThread);
+var
+  Data: TArrayList<TMacCoreData>;
+  Idled, Totaled: Int64;
+  I: Integer;
+begin
+  if ReadCores(Data) then
+    for I := 0 to FCores.Length - 1 do
+    begin
+      if I >= Data.Length then
+        Break;
+      Idled := Data[I].Idle - FCoreData[I].Idle;
+      Totaled := Data[I].Total - FCoreData[I].Total;
+      if Totaled < 1 then
+        FUsage.Items[I].Utilization := 0
+      else
+        FUsage.Items[I].Utilization := (Totaled - Idled) / Totaled;
+      FCoreData[I] := Data[I];
+      { macOS does not report the speed of each processor as it changes }
+      FUsage.Items[I].Speed := FSpeed;
+    end;
+  Thread.Synchronize(CopyUsage);
+end;
+{$endif}
+
 { The global ProcessorMonitor object }
 
 var
