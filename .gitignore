@@ -12,6 +12,9 @@ backup/
 *.exe
 *.dbg
 
+# Lazarus session files
+*.lps
+
 # Demo executables
 CardsDemo/cardsdemo
 ChaseDemo/chasedemo
@@ -25,3 +28,8 @@ PhysicsDemo/physicsdemo
 SvgDemo/svgdemo
 WidgetDemo/widgetdemo
 Codebot.MakeDeb/makedeb
+Codebot.CpuGraph/src/cpugraph
+Codebot.FileSearch/src/filesearch
+Codebot.FtpView/src/ftpview
+Codebot.MatView/src/matview
+Codebot.WebBrowse/src/webbrowse
