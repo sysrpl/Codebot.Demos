@@ -17,7 +17,7 @@ object MainForm: TMainForm
     Width = 1083
     Align = alTop
     Buttons = [abBack, abForward, abRefresh, abInspect]
-    HomePage = 'https://files.codebot.org/'
+    HomePage = 'https://www.getlazarus.org/codebot/cardgame'
     WebBrowser = Browser
   end
   object StatusIndicator: TWebStatusIndicator
