@@ -18,7 +18,8 @@ type
     procedure FormCreate(Sender: TObject);
   private
     FController: TSceneController;
-    procedure GraphicsFailed(Sender: TObject);           d;
+    procedure GraphicsFailed(Sender: TObject);
+  end;
 
 var
   MachineForm: TMachineForm;

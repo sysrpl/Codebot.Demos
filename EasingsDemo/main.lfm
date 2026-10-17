@@ -3,7 +3,7 @@ object EasingsForm: TEasingsForm
   Height = 760
   Top = 120
   Width = 1200
-  Caption = 'Easings Demo'
+  Caption = 'Easings Demo - Press F1 to toggle fullscreen'
   ClientHeight = 760
   ClientWidth = 1200
   OnCreate = FormCreate

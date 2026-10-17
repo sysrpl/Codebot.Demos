@@ -3,7 +3,7 @@ object JointForm: TJointForm
   Height = 760
   Top = 120
   Width = 1280
-  Caption = 'Joint Demo'
+  Caption = 'Joint Demo - Press F1 to toggle fullscreen'
   ClientHeight = 760
   ClientWidth = 1280
   OnCreate = FormCreate

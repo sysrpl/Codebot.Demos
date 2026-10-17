@@ -23,7 +23,7 @@ uses
 
 begin
   {$ifdef usesdl}
-  Application.Title := 'Joint Demo';
+  Application.Title := 'Joint Demo - Press F1 to toggle fullscreen';
   Application.Run(TJointScene);
   {$else}
   RequireDerivedFormResource := True;

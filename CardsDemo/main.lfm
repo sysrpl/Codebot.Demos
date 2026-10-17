@@ -3,7 +3,7 @@ object CardsForm: TCardsForm
   Height = 760
   Top = 120
   Width = 1200
-  Caption = 'Cards Demo'
+  Caption = 'Cards Demo - Press F1 to toggle fullscreen'
   ClientHeight = 760
   ClientWidth = 1200
   OnCreate = FormCreate

@@ -23,7 +23,7 @@ uses
 
 begin
   {$ifdef usesdl}
-  Application.Title := 'SVG Demo';
+  Application.Title := 'SVG Demo - Press F1 to toggle fullscreen';
   Application.Run(TSvgDemoScene);
   {$else}
   RequireDerivedFormResource := True;

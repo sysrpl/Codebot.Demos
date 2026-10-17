@@ -23,7 +23,7 @@ uses
 
 begin
   {$ifdef usesdl}
-  Application.Title := 'Chase';
+  Application.Title := 'Chase - Press F1 to toggle fullscreen';
   Application.Width := 800;
   Application.Height := 600;
   Application.Run(TChaseScene);

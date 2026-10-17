@@ -23,7 +23,7 @@ uses
 
 begin
   {$ifdef usesdl}
-  Application.Title := 'Widget Demo';
+  Application.Title := 'Widget Demo - Press F1 to toggle fullscreen';
   Application.Width := 1280;
   Application.Height := 720;
   Application.Run(TDemoScene);

@@ -23,7 +23,7 @@ uses
 
 begin
   {$ifdef usesdl}
-  Application.Title := 'Physics Demo';
+  Application.Title := 'Physics Demo - Press F1 to toggle fullscreen';
   Application.Run(TPhysicsDemoScene);
   {$else}
   RequireDerivedFormResource := True;
